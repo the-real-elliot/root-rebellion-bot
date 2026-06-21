@@ -1,6 +1,26 @@
 import os
+import threading
 import discord
 from discord.ext import commands
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
+# --- RENDER DEPLOYMENT FIX (DUMMY SERVER) ---
+class DummyHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'text/plain')
+        self.end_headers()
+        self.wfile.write(b"root@rebellion network is online.")
+
+def run_dummy_server():
+    port = int(os.environ.get("PORT", 10000))
+    server = HTTPServer(('0.0.0.0', port), DummyHandler)
+    server.serve_forever()
+
+# Start the web server in the background so Render doesn't kill the bot
+server_thread = threading.Thread(target=run_dummy_server)
+server_thread.daemon = True
+server_thread.start()
 
 # --- PERSISTENT VERIFICATION VIEW ---
 class VerifyView(discord.ui.View):
