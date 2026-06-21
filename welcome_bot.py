@@ -556,3 +556,28 @@ async def submit(ctx, *, flag: str = None):
     )
     await ctx.send(embed=embed)
 
+
+# ── LEARN HACKING BUTTON ───────────────────────────────────
+class LearnHackingView(View):
+    def __init__(self): super().__init__(timeout=None)
+
+    @discord.ui.button(label="🧠 Start Learning", style=discord.ButtonStyle.green, custom_id="learn_btn")
+    async def learn(self, interaction: discord.Interaction, button: Button):
+        await interaction.response.send_message(
+            "🔓 **Access Granted!**\nYour hacking journey starts here:\nhttps://kali-learner--alimhussain1266.replit.app/",
+            ephemeral=True
+        )
+
+# post this on startup - add to on_ready manually or run once
+import asyncio
+
+@bot.command()
+async def postlearn(ctx):
+    embed = discord.Embed(
+        title="🧠 LEARN HACKING",
+        description="> `root@rebellion:~# ./learn.sh`\n\nWant to learn ethical hacking, Kali Linux, cybersecurity?\n\n**Click below to access our learning platform!**\n\n✅ Kali Linux basics\n✅ Nmap & recon\n✅ Burp Suite & web hacking\n✅ CTF techniques\n✅ Bug bounty hunting",
+        color=0x00FF41
+    )
+    embed.set_footer(text="root@rebellion:~# knowledge is power 🧠")
+    await ctx.send(embed=embed, view=LearnHackingView())
+
