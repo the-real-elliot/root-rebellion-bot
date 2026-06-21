@@ -102,13 +102,16 @@ async def on_member_join(member):
 
     joins_channel = discord.utils.get(guild.text_channels, name="joins")
     if joins_channel:
+        # Load local image as an attachment
+        file = discord.File("welcome_banner.gif", filename="welcome_banner.gif")
+        
         embed = discord.Embed(
             title="Incoming Connection Detected",
             description=f"```\nUser: {member.name}\nID: {member.id}\nStatus: Unverified\nMember Count: {guild.member_count}\n```",
             color=discord.Color.from_rgb(0, 255, 0)
         )
-        embed.set_image(url="https://raw.githubusercontent.com/the-real-elliot/root-rebellion-assets/main/welcome_banner.gif")
-        await joins_channel.send(f"{member.mention} has breached the firewall.", embed=embed)
+        embed.set_image(url="attachment://welcome_banner.gif")
+        await joins_channel.send(f"{member.mention} has breached the firewall.", embed=embed, file=file)
 
 # --- LEAVE HANDLER ---
 @bot.event
@@ -117,14 +120,17 @@ async def on_member_remove(member):
     leaves_channel = discord.utils.get(guild.text_channels, name="leaves")
     
     if leaves_channel:
+        # Load local image as an attachment
+        file = discord.File("leave_banner.gif", filename="leave_banner.gif")
+        
         embed = discord.Embed(
             title="Connection Terminated",
             description=f"```\nUser: {member.name}\nID: {member.id}\nStatus: Disconnected\nRemaining Operatives: {guild.member_count}\n
 ```",
             color=discord.Color.from_rgb(255, 0, 0)
         )
-        embed.set_image(url="https://raw.githubusercontent.com/the-real-elliot/root-rebellion-assets/main/leave_banner.gif")
-        await leaves_channel.send(f"**{member.name}** has dropped from the network.", embed=embed)
+        embed.set_image(url="attachment://leave_banner.gif")
+        await leaves_channel.send(f"**{member.name}** has dropped from the network.", embed=embed, file=file)
 
 # --- EXECUTION ---
 TOKEN = os.environ.get("DISCORD_TOKEN")
