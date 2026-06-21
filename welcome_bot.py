@@ -17,7 +17,6 @@ def run_dummy_server():
     server = HTTPServer(('0.0.0.0', port), DummyHandler)
     server.serve_forever()
 
-# Start the web server in the background so Render doesn't kill the bot
 server_thread = threading.Thread(target=run_dummy_server)
 server_thread.daemon = True
 server_thread.start()
@@ -34,17 +33,16 @@ class VerifyView(discord.ui.View):
         unverified_role = discord.utils.get(guild.roles, name="Unverified")
         
         if not verified_role or not unverified_role:
-            await interaction.response.send_message("[ERROR] Missing 'Verified' or 'Unverified' roles.", ephemeral=True)
+            await interaction.response.send_message("[ERROR] Missing roles.", ephemeral=True)
             return
 
         member = interaction.user
-        
         try:
             await member.add_roles(verified_role)
             await member.remove_roles(unverified_role)
-            await interaction.response.send_message("[SUCCESS] Identity decrypted. Welcome to the network, operative.", ephemeral=True)
+            await interaction.response.send_message("[SUCCESS] Identity decrypted. Welcome to the network.", ephemeral=True)
         except discord.Forbidden:
-            await interaction.response.send_message("[ERROR] Insufficient permissions. Check role hierarchy.", ephemeral=True)
+            await interaction.response.send_message("[ERROR] Insufficient permissions.", ephemeral=True)
 
 # --- BOT SETUP ---
 intents = discord.Intents.default()
@@ -62,34 +60,49 @@ bot = RebellionBot()
 
 @bot.event
 async def on_ready():
-    print(f"[SYSTEM] Logged in as {bot.user.name} ({bot.user.id})")
-    print("[SYSTEM] Persistent verification listener active.")
+    print(f"[SYSTEM] Logged in as {bot.user.name}")
 
-# --- VERIFY SETUP COMMAND ---
+# --- COMMANDS ---
 @bot.command()
 @commands.has_permissions(administrator=True)
 async def setup_verify(ctx):
     await ctx.message.delete()
-    
     embed = discord.Embed(
-        title="root@rebellion:~# Access Control Protocol",
-        description=(
-            "```\n"
-            "============= SECURITY GATEWAY =============\n"
-            "Unauthorized access detected.\n"
-            "To unlock the community channels and complete your \n"
-            "onboarding, you must initialize verification.\n\n"
-            "By clicking the button below, you agree to follow \n"
-            "the server directives and respect the network rules.\n"
-            "============================================\n"
-            "
-```"
-        ),
-        color=discord.Color.from_rgb(0, 255, 0)
+        title="root@rebellion:~# Access Control",
+        description="```\nClick the button below to initialize verification.\n
+```",
+        color=discord.Color.green()
     )
     await ctx.send(embed=embed, view=VerifyView())
 
-# --- JOIN HANDLER ---
+@bot.command()
+async def ctf(ctx):
+    embed = discord.Embed(
+        title="CTF Challenge #1: Cryptography",
+        description="Decode this string to find the flag:\n```text\nZmxhZ3toZWxsb19mcm9tX2Jhc2U2NH0=\n```",
+        color=discord.Color.red()
+    )
+    await ctx.send(embed=embed)
+
+@bot.command()
+@commands.has_permissions(manage_messages=True)
+async def clear(ctx, amount: int = 5):
+    await ctx.channel.purge(limit=amount + 1)
+    await ctx.send(f"[SYSTEM] Wiped {amount} messages from the logs.", delete_after=5)
+
+@bot.command()
+@commands.has_permissions(kick_members=True)
+async def kick(ctx, member: discord.Member, *, reason="No reason provided"):
+    await member.kick(reason=reason)
+    await ctx.send(f"[SYSTEM] {member.mention} has been forcefully disconnected. (Kick)")
+
+@bot.command()
+@commands.has_permissions(ban_members=True)
+async def ban(ctx, member: discord.Member, *, reason="No reason provided"):
+    await member.ban(reason=reason)
+    await ctx.send(f"[SYSTEM] {member.mention} has been blacklisted from the network. (Ban)")
+
+# --- JOIN / LEAVE HANDLERS ---
 @bot.event
 async def on_member_join(member):
     guild = member.guild
@@ -97,44 +110,35 @@ async def on_member_join(member):
     if unverified_role:
         try:
             await member.add_roles(unverified_role)
-        except discord.Forbidden:
-            print("[ERROR] Cannot assign Unverified role.")
+        except:
+            pass
 
     joins_channel = discord.utils.get(guild.text_channels, name="joins")
     if joins_channel:
-        # Load local image as an attachment
         file = discord.File("welcome_banner.gif", filename="welcome_banner.gif")
-        
         embed = discord.Embed(
-            title="Incoming Connection Detected",
-            description=f"```\nUser: {member.name}\nID: {member.id}\nStatus: Unverified\nMember Count: {guild.member_count}\n```",
-            color=discord.Color.from_rgb(0, 255, 0)
+            title="Incoming Connection",
+            description=f"```\nUser: {member.name}\nID: {member.id}\nStatus: Unverified\n
+```",
+            color=discord.Color.green()
         )
         embed.set_image(url="attachment://welcome_banner.gif")
-        await joins_channel.send(f"{member.mention} has breached the firewall.", embed=embed, file=file)
+        await joins_channel.send(f"{member.mention} breached the firewall.", embed=embed, file=file)
 
-# --- LEAVE HANDLER ---
 @bot.event
 async def on_member_remove(member):
     guild = member.guild
     leaves_channel = discord.utils.get(guild.text_channels, name="leaves")
-    
     if leaves_channel:
-        # Load local image as an attachment
         file = discord.File("leave_banner.gif", filename="leave_banner.gif")
-        
         embed = discord.Embed(
             title="Connection Terminated",
-            description=f"```\nUser: {member.name}\nID: {member.id}\nStatus: Disconnected\nRemaining Operatives: {guild.member_count}\n
-```",
-            color=discord.Color.from_rgb(255, 0, 0)
+            description=f"```\nUser: {member.name}\nID: {member.id}\nStatus: Disconnected\n```",
+            color=discord.Color.red()
         )
         embed.set_image(url="attachment://leave_banner.gif")
-        await leaves_channel.send(f"**{member.name}** has dropped from the network.", embed=embed, file=file)
+        await leaves_channel.send(f"**{member.name}** dropped from the network.", embed=embed, file=file)
 
 # --- EXECUTION ---
 TOKEN = os.environ.get("DISCORD_TOKEN")
-if TOKEN:
-    bot.run(TOKEN)
-else:
-    print("[FATAL] DISCORD_TOKEN variable missing from environment.")
+bot.run(TOKEN)
