@@ -1,6 +1,7 @@
 import discord
 import os
 import asyncio
+import random
 from discord.ui import Button, View
 
 TOKEN = os.environ["DISCORD_TOKEN"]
@@ -22,6 +23,150 @@ def mod_embed(title, desc, color=0x00FF41):
     e = discord.Embed(title=title, description=desc, color=color)
     e.set_footer(text="root@rebellion:~# MOD ACTION")
     return e
+
+# ── CTF CHALLENGES ─────────────────────────────────────────
+CTF_CHALLENGES = [
+    {
+        "id": "c1",
+        "category": "🔐 Crypto",
+        "title": "Caesar's Secret",
+        "description": "Decode this Caesar cipher (ROT13):\n```\nEbby gur qvpr, pbqr gur jbeyq.\n```",
+        "hint": "ROT13 shifts each letter by 13 positions.",
+        "flag": "flag{roll_the_dice_code_the_world}",
+        "points": 50
+    },
+    {
+        "id": "c2",
+        "category": "🔐 Crypto",
+        "title": "Base Mystery",
+        "description": "Decode this:\n```\ZmxhZ3toZWxsb19mcm9tX2Jhc2U2NH0=\n```",
+        "hint": "It's encoded in a common web encoding.",
+        "flag": "flag{hello_from_base64}",
+        "points": 50
+    },
+    {
+        "id": "c3",
+        "category": "🔐 Crypto",
+        "title": "Hash Cracker",
+        "description": "What is the plaintext of this MD5 hash?\n```\n5f4dcc3b5aa765d61d8327deb882cf99\n```",
+        "hint": "It's a very common password.",
+        "flag": "flag{password}",
+        "points": 75
+    },
+    {
+        "id": "c4",
+        "category": "🐧 Linux",
+        "title": "Command Recon",
+        "description": "What command lists all open network connections and their ports on Linux?",
+        "hint": "It starts with 'ss' or an older command with 'n' flag.",
+        "flag": "flag{ss_or_netstat}",
+        "points": 50
+    },
+    {
+        "id": "c5",
+        "category": "🐧 Linux",
+        "title": "File Secrets",
+        "description": "What command searches for the string 'password' recursively in all files under /var/www/?",
+        "hint": "Think grep with recursive flag.",
+        "flag": "flag{grep_r_password}",
+        "points": 50
+    },
+    {
+        "id": "c6",
+        "category": "🐧 Linux",
+        "title": "SUID Hunt",
+        "description": "What command finds all SUID binaries on the system for privilege escalation?",
+        "hint": "Use find with -perm flag.",
+        "flag": "flag{find_suid_binaries}",
+        "points": 100
+    },
+    {
+        "id": "c7",
+        "category": "🌐 Web",
+        "title": "SQLi Basics",
+        "description": "What input in a login form would bypass authentication using SQL injection?",
+        "hint": "Think about commenting out the rest of the query.",
+        "flag": "flag{admin_or_1_equals_1}",
+        "points": 75
+    },
+    {
+        "id": "c8",
+        "category": "🌐 Web",
+        "title": "XSS Payload",
+        "description": "What is the simplest XSS payload to pop an alert box in a browser?",
+        "hint": "Uses a script tag.",
+        "flag": "flag{script_alert_xss}",
+        "points": 75
+    },
+    {
+        "id": "c9",
+        "category": "🌐 Web",
+        "title": "HTTP Headers",
+        "description": "What HTTP response header is used to prevent clickjacking attacks?",
+        "hint": "It tells the browser whether the page can be embedded in a frame.",
+        "flag": "flag{x_frame_options}",
+        "points": 50
+    },
+    {
+        "id": "c10",
+        "category": "🕵️ OSINT",
+        "title": "WHOIS Recon",
+        "description": "What tool do you use to find domain registration info, owner, and nameservers?",
+        "hint": "It's a classic recon command available on all Linux systems.",
+        "flag": "flag{whois}",
+        "points": 50
+    },
+    {
+        "id": "c11",
+        "category": "🕵️ OSINT",
+        "title": "Google Dork",
+        "description": "What Google dork finds exposed login pages on a target site example.com?",
+        "hint": "Use site: and inurl: operators.",
+        "flag": "flag{site_inurl_login}",
+        "points": 75
+    },
+    {
+        "id": "c12",
+        "category": "💻 Reverse",
+        "title": "Binary Decode",
+        "description": "What is the ASCII text of this binary?\n```\n01100110 01101100 01100001 01100111\n```",
+        "hint": "Convert each 8-bit group to decimal then to ASCII.",
+        "flag": "flag{flag}",
+        "points": 75
+    },
+    {
+        "id": "c13",
+        "category": "💻 Reverse",
+        "title": "Hex Decode",
+        "description": "Decode this hex string:\n```\n666c61677b6865785f6d617374657d\n```",
+        "hint": "Each pair of hex digits is one ASCII character.",
+        "flag": "flag{hex_master}",
+        "points": 75
+    },
+    {
+        "id": "c14",
+        "category": "🔓 Pentesting",
+        "title": "Port Scanner",
+        "description": "What nmap command does a fast SYN scan on all 65535 ports of a target?",
+        "hint": "Use -sS for SYN scan and -p- for all ports.",
+        "flag": "flag{nmap_ss_p_all}",
+        "points": 100
+    },
+    {
+        "id": "c15",
+        "category": "🔓 Pentesting",
+        "title": "Service Detection",
+        "description": "What nmap flag detects service versions running on open ports?",
+        "hint": "It's a single uppercase letter flag.",
+        "flag": "flag{nmap_sv_flag}",
+        "points": 50
+    },
+]
+
+# Track active challenges per user: {user_id: challenge}
+active_challenges = {}
+# Track scores per user: {user_id: points}
+scores = {}
 
 # ── VERIFY VIEW ────────────────────────────────────────────
 class VerifyView(View):
@@ -188,7 +333,7 @@ async def on_ready():
         await roles_ch.send(view=HackerView2())
         print("✅ Self-roles posted")
 
-# ── MODERATION ─────────────────────────────────────────────
+# ── ON MESSAGE ─────────────────────────────────────────────
 @client.event
 async def on_message(message):
     if message.author.bot:
@@ -202,8 +347,99 @@ async def on_message(message):
     cmd = parts[0].lower()
     invoker = message.author
 
-    # ── !kick ──
-    if cmd == "!kick":
+    # ── !ctf ──
+    if cmd == "!ctf":
+        challenge = random.choice(CTF_CHALLENGES)
+        active_challenges[invoker.id] = challenge
+        embed = discord.Embed(
+            title=f"{challenge['category']} | {challenge['title']}",
+            description=challenge['description'],
+            color=0x00FF41
+        )
+        embed.add_field(name="🏆 Points", value=f"`{challenge['points']} pts`", inline=True)
+        embed.add_field(name="📌 Submit", value="`!submit flag{your_answer}`", inline=True)
+        embed.add_field(name="💡 Hint", value="`!hint` for a nudge", inline=True)
+        embed.set_footer(text="root@rebellion:~# CTF PRACTICE MODE")
+        await message.channel.send(embed=embed)
+
+    # ── !hint ──
+    elif cmd == "!hint":
+        challenge = active_challenges.get(invoker.id)
+        if not challenge:
+            await message.channel.send(embed=discord.Embed(description="No active challenge! Use `!ctf` first.", color=0xFF0000))
+            return
+        await message.channel.send(embed=discord.Embed(
+            title="💡 HINT",
+            description=challenge['hint'],
+            color=0xFFA500
+        ))
+
+    # ── !submit ──
+    elif cmd == "!submit":
+        challenge = active_challenges.get(invoker.id)
+        if not challenge:
+            await message.channel.send(embed=discord.Embed(description="No active challenge! Use `!ctf` first.", color=0xFF0000))
+            return
+        if len(parts) < 2:
+            await message.channel.send(embed=discord.Embed(description="Usage: `!submit flag{your_answer}`", color=0xFF0000))
+            return
+        submitted = parts[1].strip().lower()
+        correct = challenge['flag'].lower()
+        if submitted == correct:
+            scores[invoker.id] = scores.get(invoker.id, 0) + challenge['points']
+            del active_challenges[invoker.id]
+            embed = discord.Embed(
+                title="✅ CORRECT FLAG!",
+                description=f"**{invoker.mention}** captured the flag!\n+**{challenge['points']} points** added.\nTotal: **{scores[invoker.id]} pts**",
+                color=0x00FF41
+            )
+            embed.set_footer(text="root@rebellion:~# FLAG CAPTURED")
+            await message.channel.send(embed=embed)
+        else:
+            embed = discord.Embed(
+                title="❌ WRONG FLAG",
+                description="That's not right. Keep trying or use `!hint`.",
+                color=0xFF0000
+            )
+            await message.channel.send(embed=embed)
+
+    # ── !score ──
+    elif cmd == "!score":
+        target = message.mentions[0] if message.mentions else invoker
+        pts = scores.get(target.id, 0)
+        embed = discord.Embed(
+            title="📊 SCORE",
+            description=f"{target.mention} has **{pts} points**.",
+            color=0x00FF41
+        )
+        embed.set_footer(text="root@rebellion:~# SCOREBOARD")
+        await message.channel.send(embed=embed)
+
+    # ── !leaderboard ──
+    elif cmd == "!leaderboard":
+        if not scores:
+            await message.channel.send(embed=discord.Embed(description="No scores yet! Use `!ctf` to start.", color=0xFF0000))
+            return
+        sorted_scores = sorted(scores.items(), key=lambda x: x[1], reverse=True)[:10]
+        desc = ""
+        medals = ["🥇", "🥈", "🥉"]
+        for i, (uid, pts) in enumerate(sorted_scores):
+            medal = medals[i] if i < 3 else f"`{i+1}.`"
+            user = message.guild.get_member(uid)
+            name = user.mention if user else f"`{uid}`"
+            desc += f"{medal} {name} — **{pts} pts**\n"
+        embed = discord.Embed(title="🏆 CTF LEADERBOARD", description=desc, color=0x00FF41)
+        embed.set_footer(text="root@rebellion:~# TOP HACKERS")
+        await message.channel.send(embed=embed)
+
+    # ── !skip ──
+    elif cmd == "!skip":
+        if invoker.id in active_challenges:
+            del active_challenges[invoker.id]
+        await message.channel.send(embed=discord.Embed(description="Challenge skipped. Use `!ctf` for a new one.", color=0xFFA500))
+
+    # ── MODERATION ──
+    elif cmd == "!kick":
         if not has_mod_role(invoker):
             await message.channel.send(embed=mod_embed("❌ ACCESS DENIED", "You don't have permission.", 0xFF0000))
             return
@@ -215,7 +451,6 @@ async def on_message(message):
         await target.kick(reason=reason)
         await message.channel.send(embed=mod_embed("👢 USER KICKED", f"`{target}` was kicked.\n**Reason:** {reason}", 0xFFA500))
 
-    # ── !ban ──
     elif cmd == "!ban":
         if not has_mod_role(invoker):
             await message.channel.send(embed=mod_embed("❌ ACCESS DENIED", "You don't have permission.", 0xFF0000))
@@ -228,7 +463,6 @@ async def on_message(message):
         await target.ban(reason=reason)
         await message.channel.send(embed=mod_embed("🔨 USER BANNED", f"`{target}` was banned.\n**Reason:** {reason}", 0xFF0000))
 
-    # ── !unban ──
     elif cmd == "!unban":
         if not has_mod_role(invoker):
             await message.channel.send(embed=mod_embed("❌ ACCESS DENIED", "You don't have permission.", 0xFF0000))
@@ -243,9 +477,8 @@ async def on_message(message):
                 await message.guild.unban(entry.user)
                 await message.channel.send(embed=mod_embed("✅ USER UNBANNED", f"`{entry.user}` was unbanned.", 0x00FF41))
                 return
-        await message.channel.send(embed=mod_embed("❌ NOT FOUND", f"`{username}` not found in ban list.", 0xFF0000))
+        await message.channel.send(embed=mod_embed("❌ NOT FOUND", f"`{username}` not in ban list.", 0xFF0000))
 
-    # ── !mute ──
     elif cmd == "!mute":
         if not has_mod_role(invoker):
             await message.channel.send(embed=mod_embed("❌ ACCESS DENIED", "You don't have permission.", 0xFF0000))
@@ -259,7 +492,6 @@ async def on_message(message):
         await target.timeout(discord.utils.utcnow() + __import__('datetime').timedelta(minutes=minutes), reason=reason)
         await message.channel.send(embed=mod_embed("🔇 USER MUTED", f"`{target}` muted for **{minutes} min**.\n**Reason:** {reason}", 0xFFA500))
 
-    # ── !unmute ──
     elif cmd == "!unmute":
         if not has_mod_role(invoker):
             await message.channel.send(embed=mod_embed("❌ ACCESS DENIED", "You don't have permission.", 0xFF0000))
@@ -269,9 +501,8 @@ async def on_message(message):
             return
         target = message.mentions[0]
         await target.timeout(None)
-        await message.channel.send(embed=mod_embed("🔊 USER UNMUTED", f"`{target}` has been unmuted.", 0x00FF41))
+        await message.channel.send(embed=mod_embed("🔊 USER UNMUTED", f"`{target}` unmuted.", 0x00FF41))
 
-    # ── !purge ──
     elif cmd == "!purge":
         if not has_mod_role(invoker):
             await message.channel.send(embed=mod_embed("❌ ACCESS DENIED", "You don't have permission.", 0xFF0000))
@@ -282,7 +513,6 @@ async def on_message(message):
         await asyncio.sleep(3)
         await msg.delete()
 
-    # ── !warn ──
     elif cmd == "!warn":
         if not has_mod_role(invoker):
             await message.channel.send(embed=mod_embed("❌ ACCESS DENIED", "You don't have permission.", 0xFF0000))
@@ -292,21 +522,19 @@ async def on_message(message):
             return
         target = message.mentions[0]
         reason = " ".join(parts[2:]) if len(parts) > 2 else "No reason provided"
-        await message.channel.send(embed=mod_embed("⚠️ USER WARNED", f"{target.mention} has been warned.\n**Reason:** {reason}", 0xFFA500))
+        await message.channel.send(embed=mod_embed("⚠️ USER WARNED", f"{target.mention} warned.\n**Reason:** {reason}", 0xFFA500))
 
-    # ── !userinfo ──
     elif cmd == "!userinfo":
-        target = message.mentions[0] if message.mentions else message.author
+        target = message.mentions[0] if message.mentions else invoker
         embed = discord.Embed(title=f"👤 {target.name}", color=0x00FF41)
         embed.add_field(name="ID", value=f"`{target.id}`", inline=True)
-        embed.add_field(name="Joined Server", value=f"<t:{int(target.joined_at.timestamp())}:R>", inline=True)
-        embed.add_field(name="Account Created", value=f"<t:{int(target.created_at.timestamp())}:R>", inline=True)
+        embed.add_field(name="Joined", value=f"<t:{int(target.joined_at.timestamp())}:R>", inline=True)
+        embed.add_field(name="Created", value=f"<t:{int(target.created_at.timestamp())}:R>", inline=True)
         embed.add_field(name="Roles", value=" ".join([r.mention for r in target.roles[1:]]) or "None", inline=False)
         embed.set_thumbnail(url=target.display_avatar.url)
         embed.set_footer(text="root@rebellion:~# ./userinfo.sh")
         await message.channel.send(embed=embed)
 
-    # ── !serverinfo ──
     elif cmd == "!serverinfo":
         guild = message.guild
         embed = discord.Embed(title=f"🖥️ {guild.name}", color=0x00FF41)
@@ -318,11 +546,11 @@ async def on_message(message):
         embed.set_footer(text="root@rebellion:~# ./serverinfo.sh")
         await message.channel.send(embed=embed)
 
-    # ── !commands ──
     elif cmd == "!commands":
         embed = discord.Embed(title="🤖 BOT COMMANDS", color=0x00FF41)
-        embed.add_field(name="Moderation", value="`!kick` `!ban` `!unban` `!mute` `!unmute` `!purge` `!warn`", inline=False)
-        embed.add_field(name="Info", value="`!userinfo` `!serverinfo`", inline=False)
+        embed.add_field(name="🚩 CTF Practice", value="`!ctf` `!hint` `!submit` `!skip` `!score` `!leaderboard`", inline=False)
+        embed.add_field(name="🔨 Moderation", value="`!kick` `!ban` `!unban` `!mute` `!unmute` `!purge` `!warn`", inline=False)
+        embed.add_field(name="ℹ️ Info", value="`!userinfo` `!serverinfo` `!commands`", inline=False)
         embed.set_footer(text="root@rebellion:~# ./help.sh")
         await message.channel.send(embed=embed)
 
