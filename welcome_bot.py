@@ -26,8 +26,8 @@ server_thread.start()
 TOKEN = os.environ.get("DISCORD_TOKEN")
 GUILD_ID = 1515008902821838948
 
-WELCOME_GIF = "https://raw.githubusercontent.com/the-real-elliot/root-rebellion-assets/main/welcome_banner.gif"
-LEAVE_GIF   = "https://raw.githubusercontent.com/the-real-elliot/root-rebellion-assets/main/leave_banner.gif"
+WELCOME_GIF = "[https://raw.githubusercontent.com/the-real-elliot/root-rebellion-assets/main/welcome_banner.gif](https://raw.githubusercontent.com/the-real-elliot/root-rebellion-assets/main/welcome_banner.gif)"
+LEAVE_GIF   = "[https://raw.githubusercontent.com/the-real-elliot/root-rebellion-assets/main/leave_banner.gif](https://raw.githubusercontent.com/the-real-elliot/root-rebellion-assets/main/leave_banner.gif)"
 
 intents = discord.Intents.default()
 intents.members = True
@@ -38,7 +38,6 @@ class RebellionBot(commands.Bot):
         super().__init__(command_prefix="!", intents=intents)
 
     async def setup_hook(self):
-        # Register persistent views so buttons work after restarts
         self.add_view(VerifyView())
         self.add_view(AgeView())
         self.add_view(RegionView())
@@ -194,7 +193,6 @@ async def on_ready():
     if not guild:
         return
 
-    # Post verify button
     verify_ch = next((c for c in guild.text_channels if "verify" in c.name), None)
     if verify_ch:
         async for msg in verify_ch.history(limit=10):
@@ -207,9 +205,7 @@ async def on_ready():
         )
         embed.set_footer(text="root@rebellion:~# ./verify.sh")
         await verify_ch.send(embed=embed, view=VerifyView())
-        print("✅ Verify button posted")
 
-    # Post self-roles buttons
     roles_ch = next((c for c in guild.text_channels if "self-roles" in c.name), None)
     if roles_ch:
         async for msg in roles_ch.history(limit=20):
@@ -228,8 +224,6 @@ async def on_ready():
         embed4 = discord.Embed(title="💀 Hacker Rank", description="Pick your specialization — multiple allowed.", color=0x00FF41)
         await roles_ch.send(embed=embed4, view=HackerView())
         await roles_ch.send(view=HackerView2())
-
-        print("✅ Self-roles posted")
 
 # ── WELCOME / LEAVE ────────────────────────────────────────
 @bot.event
@@ -276,10 +270,15 @@ async def on_member_remove(member):
 # ── COMMANDS ───────────────────────────────────────────────
 @bot.command()
 async def ctf(ctx):
+    # Split into safe strings to prevent terminal pasting issues
+    line1 = "Decode this string to find the flag:\n"
+    line2 = "```text\n"
+    line3 = "ZmxhZ3toZWxsb19mcm9tX2Jhc2U2NH0=\n"
+    line4 = "```"
+    
     embed = discord.Embed(
         title="CTF Challenge #1: Cryptography",
-        description="Decode this string to find the flag:\n```text\nZmxhZ3toZWxsb19mcm9tX2Jhc2U2NH0=\n
-```",
+        description=line1 + line2 + line3 + line4,
         color=discord.Color.red()
     )
     await ctx.send(embed=embed)
