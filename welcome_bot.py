@@ -5,13 +5,17 @@ from discord.ext import commands
 from discord.ui import Button, View
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
-# ── RENDER DEPLOYMENT FIX ──────────────────────────────────
+# ── RENDER DEPLOYMENT FIX & UPTIMEROBOT SUPPORT ────────────
 class DummyHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
         self.send_header('Content-type', 'text/plain')
         self.end_headers()
         self.wfile.write(b"root@rebellion network is online.")
+    
+    def do_HEAD(self):
+        self.send_response(200)
+        self.end_headers()
 
 def run_dummy_server():
     port = int(os.environ.get("PORT", 10000))
@@ -26,9 +30,8 @@ server_thread.start()
 TOKEN = os.environ.get("DISCORD_TOKEN")
 GUILD_ID = 1515008902821838948
 
-# GITHUB GIF URLs
-WELCOME_GIF = "https://raw.githubusercontent.com/the-real-elliot/root-rebellion-assets/main/welcome_banner.gif"
-LEAVE_GIF   = "https://raw.githubusercontent.com/the-real-elliot/root-rebellion-assets/main/leave_banner.gif"
+WELCOME_GIF = "https://raw.githubusercontent.com/the-real-elliot/root-rebellion-assets/main/welcome_banner.gif".strip()
+LEAVE_GIF   = "https://raw.githubusercontent.com/the-real-elliot/root-rebellion-assets/main/leave_banner.gif".strip()
 
 intents = discord.Intents.default()
 intents.members = True
@@ -72,14 +75,11 @@ class VerifyView(View):
         member = interaction.user
         verified = discord.utils.get(guild.roles, name="Verified")
         unverified = discord.utils.get(guild.roles, name="Unverified")
-        
         if verified and verified in member.roles:
             await interaction.response.send_message("Already verified!", ephemeral=True)
             return
-            
         if verified: await member.add_roles(verified)
         if unverified and unverified in member.roles: await member.remove_roles(unverified)
-            
         await interaction.response.send_message("✅ Access granted! Go to **#self-roles** and pick your roles!", ephemeral=True)
 
 class AgeView(View):
@@ -165,80 +165,52 @@ async def on_ready():
         await roles_ch.send(embed=discord.Embed(title="💀 Hacker Rank", description="Pick your specialization — multiple allowed.", color=0x00FF41), view=HackerView())
         await roles_ch.send(view=HackerView2())
 
-# ── WELCOME / LEAVE HANDLERS (URL BASED) ───────────────────
+# ── WELCOME / LEAVE HANDLERS ───────────────────────────────
 @bot.event
 async def on_member_join(member):
-    print(f"[DEBUG] JOIN EVENT FIRED FOR: {member.name}")
     guild = member.guild
-    
     unverified = discord.utils.get(guild.roles, name="Unverified")
     if unverified:
-        try:
-            await member.add_roles(unverified)
-            print("[DEBUG] Assigned Unverified role successfully.")
-        except Exception as e:
-            print(f"[ERROR] Failed to assign Unverified role. Check role hierarchy! Error: {e}")
+        try: await member.add_roles(unverified)
+        except Exception: pass
     
     channel = next((c for c in guild.text_channels if "joins" in c.name), None)
-    if not channel:
-        print("[ERROR] Could not find the 'joins' channel.")
-        return
+    if not channel: return
         
     try:
         embed = discord.Embed(
             description=f"> `Initializing new connection...`\n> `Scanning user profile...`\n> `Access point detected.`\n> `root@rebellion:~# ./welcome.sh`\n\n# 👾 {member.mention} has entered the grid.\n\n**Read the rules. Verify yourself. Own the system.**",
             color=0x00FF41
         )
-        # Using GitHub URL
-        embed.set_image(url=WELCOME_GIF)
+        if WELCOME_GIF.startswith("http"): embed.set_image(url=WELCOME_GIF)
         embed.add_field(name="👤 User", value=member.mention, inline=True)
         embed.add_field(name="🪪 ID", value=f"`{member.id}`", inline=True)
         embed.add_field(name="👥 Member #", value=f"`{guild.member_count}`", inline=True)
         embed.add_field(name="📅 Account Age", value=f"<t:{int(member.created_at.timestamp())}:R>", inline=True)
         embed.set_footer(text="root@rebellion:~# WE EXPLOIT. WE LEARN. WE OWN.")
-        
         await channel.send(embed=embed)
-        print("[DEBUG] Welcome message sent successfully.")
-    except Exception as e:
-        print(f"[ERROR] Failed to send welcome message: {e}")
+    except Exception as e: print(f"[ERROR] Join message failed: {e}")
 
 @bot.event
 async def on_member_remove(member):
-    print(f"[DEBUG] LEAVE EVENT FIRED FOR: {member.name}")
     guild = member.guild
-    
     channel = next((c for c in guild.text_channels if "leaves" in c.name), None)
-    if not channel:
-        print("[ERROR] Could not find the 'leaves' channel.")
-        return
+    if not channel: return
         
     try:
         embed = discord.Embed(
             description=f"> `Closing session...`\n> `Clearing traces...`\n> `Connection terminated.`\n> `root@rebellion:~# ./goodbye.sh`\n\n# 💀 **{member.name}** has left the grid.\n\n**You left. The impact stays. Good luck.**",
             color=0xFF0000
         )
-        # Using GitHub URL
-        embed.set_image(url=LEAVE_GIF)
+        if LEAVE_GIF.startswith("http"): embed.set_image(url=LEAVE_GIF)
         embed.add_field(name="👤 User", value=f"`{member.name}`", inline=True)
         embed.add_field(name="🪪 ID", value=f"`{member.id}`", inline=True)
         embed.add_field(name="👥 Members Left", value=f"`{guild.member_count}`", inline=True)
         embed.set_footer(text="root@rebellion:~# SESSION CLOSED.")
-        
         await channel.send(embed=embed)
-        print("[DEBUG] Leave message sent successfully.")
-    except Exception as e:
-        print(f"[ERROR] Failed to send leave message: {e}")
+    except Exception as e: print(f"[ERROR] Leave message failed: {e}")
 
-# ── COMMANDS ───────────────────────────────────────────────
-@bot.command()
-async def ctf(ctx):
-    line1 = "Decode this string to find the flag:\n"
-    line2 = "```text\n"
-    line3 = "ZmxhZ3toZWxsb19mcm9tX2Jhc2U2NH0=\n"
-    line4 = "```"
-    embed = discord.Embed(title="CTF Challenge #1: Cryptography", description=line1 + line2 + line3 + line4, color=discord.Color.red())
-    await ctx.send(embed=embed)
-
+# ── MODERATION COMMANDS ────────────────────────────────────
 @bot.command()
 @commands.has_permissions(manage_messages=True)
 async def clear(ctx, amount: int = 5):
@@ -257,7 +229,43 @@ async def ban(ctx, member: discord.Member, *, reason="No reason provided"):
     await member.ban(reason=reason)
     await ctx.send(f"[SYSTEM] {member.mention} has been blacklisted from the network. (Ban)")
 
-if TOKEN:
-    bot.run(TOKEN)
-else:
-    print("[FATAL] DISCORD_TOKEN variable missing from environment.")
+
+# ── CTF ENGINE ─────────────────────────────────────────────
+CTF_FLAGS = {
+    "flag{hello_from_base64}": "Crypto 1 (Base64 Encoding)",
+    "flag{binary_is_fun}": "Crypto 2 (Binary Translation)",
+    "flag{hidden_admin_panel}": "Web 1 (Robots.txt Recon)",
+    "flag{hacker123}": "Hash 1 (MD5 Cracking)"
+}
+
+@bot.command()
+async def challenges(ctx):
+    embed = discord.Embed(
+        title="🎯 Active CTF Training Grounds",
+        description="> Use `!ctf <category>` to load a puzzle.\n> Submit flags using `!submit <flag>`.",
+        color=0x00FF41
+    )
+    embed.add_field(name="🔑 Cryptography", value="`!ctf crypto1`\n`!ctf crypto2`", inline=False)
+    embed.add_field(name="🌐 Web Exploitation", value="`!ctf web1`", inline=False)
+    embed.add_field(name="💥 Password Attacks", value="`!ctf hash1`", inline=False)
+    embed.set_footer(text="root@rebellion:~# ./list_challenges.sh")
+    await ctx.send(embed=embed)
+
+@bot.command()
+async def ctf(ctx, challenge: str = None):
+    if not challenge:
+        await ctx.send("❌ Please specify a challenge. Type `!challenges` for a list.")
+        return
+
+    challenge = challenge.lower()
+    embed = discord.Embed(color=0xFF0000)
+
+    if challenge == "crypto1":
+        embed.title = "CTF: Crypto 1"
+        embed.description = "Decode this string to find the flag:\n```text\nZmxhZ3toZWxsb19mcm9tX2Jhc2U2NH0=\n```"
+    elif challenge == "crypto2":
+        embed.title = "CTF: Crypto 2"
+        embed.description = "We intercepted this raw machine code. Translate it to ASCII to find the flag:\n```text\n01100110 01101100 01100001 01100111 01111011 01100010 01101001 01101110 01100001 01110010 01111001 01011111 01101001 01110011 01011111 01100110 01110101 01101110 01111101\n```"
+    elif challenge == "web1":
+        embed.title = "CTF: Web 1"
+        embed.description = "We pulled this `robots.txt` file from the target server. Where are they hiding the admin panel?\n
