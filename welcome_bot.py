@@ -199,3 +199,360 @@ async def ban(ctx, member: discord.Member, *, reason="No reason provided"):
     await ctx.send(f"[SYSTEM] {member.mention} blacklisted. (Ban)")
 
 bot.run(TOKEN)
+
+# ── LEARN HACKING BUTTON ───────────────────────────────────
+class LearnHackingView(View):
+    def __init__(self): super().__init__(timeout=None)
+
+    @discord.ui.button(label="🌐 Start Learning", style=discord.ButtonStyle.green, custom_id="learn_btn", emoji="💻")
+    async def learn(self, interaction: discord.Interaction, button: Button):
+        await interaction.response.send_message(
+            "🔓 **Access Granted!**\nYour hacking journey starts here:\n> https://kali-learner--alimhussain1266.replit.app/",
+            ephemeral=True
+        )
+
+# ── CTF CHALLENGES EXPANDED ────────────────────────────────
+CTF_CHALLENGES = {
+    # CRYPTO
+    "crypto1": ("🔑 Crypto 1 — Base64", "Decode this:\n```ZmxhZ3toZWxsb19mcm9tX2Jhc2U2NH0=```"),
+    "crypto2": ("🔑 Crypto 2 — Binary", "Convert binary to ASCII:\n```01100110 01101100 01100001 01100111 01111011 01100010 01101001 01101110 01100001 01110010 01111001 01011111 01101001 01110011 01011111 01100110 01110101 01101110 01111101```"),
+    "crypto3": ("🔑 Crypto 3 — Caesar", "Decode Caesar cipher (ROT13):\n```synt{ebg_guergrra_vf_rnfl}```"),
+    "crypto4": ("🔑 Crypto 4 — Hex", "Convert hex to ASCII:\n```666c61677b6865785f6d61737465727d```"),
+
+    # WEB
+    "web1": ("🌐 Web 1 — Robots.txt", "We pulled this robots.txt:\n```\nUser-agent: *\nDisallow: /admin-secret-panel/\nDisallow: /flag.txt\n```\nWhat's the flag path?"),
+    "web2": ("🌐 Web 2 — SQLi", "Login form is vulnerable. What payload bypasses auth?\n```sql\nSELECT * FROM users WHERE user='INPUT' AND pass='INPUT'\n```\nFlag format: `flag{payload_here}`"),
+    "web3": ("🌐 Web 3 — XSS", "Find the XSS payload that triggers alert:\n```html\n<input value='USER_INPUT'>\n```\nFlag: `flag{xss_payload}`"),
+    "web4": ("🌐 Web 4 — IDOR", "API endpoint: `/api/user?id=1` returns admin data.\nWhat id gives flag?\n```json\n{\"id\": 1, \"role\": \"admin\", \"flag\": \"???\"}\n```"),
+
+    # BRUTE FORCE
+    "brute1": ("💥 Brute 1 — PIN Crack", "4-digit PIN. Hint: It's a year between 1990-2000.\nFlag: `flag{year}`"),
+    "brute2": ("💥 Brute 2 — MD5 Hash", "Crack this MD5:\n```5f4dcc3b5aa765d61d8327deb882cf99```\nFlag: `flag{plaintext}`"),
+    "brute3": ("💥 Brute 3 — Wordlist", "SSH login cracked with rockyou.txt. Top 3 passwords?\nFlag: `flag{password1_password2_password3}`"),
+    "brute4": ("💥 Brute 4 — JWT", "JWT token with weak secret:\n```eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoiZ3Vlc3QifQ.abc123```\nSecret is 'secret'. Forge admin token. Flag: `flag{forged}`"),
+
+    # OSINT
+    "osint1": ("🕵️ OSINT 1 — Username", "Username: `th3r34l3ll10t`\nFind their GitHub. What's the repo name?\nFlag: `flag{repo_name}`"),
+    "osint2": ("🕵️ OSINT 2 — IP Recon", "IP: `93.184.216.34`\nWhat domain does it belong to?\nFlag: `flag{domain}`"),
+    "osint3": ("🕵️ OSINT 3 — Metadata", "Image metadata reveals GPS coords.\nLat: 40.7128, Long: -74.0060\nWhat city? Flag: `flag{city}`"),
+
+    # LINUX
+    "linux1": ("🐧 Linux 1 — Find Flag", "Flag hidden in /etc. Command to find it?\n```bash\n$ find /etc -name '*.flag' 2>/dev/null\n```\nFlag: `flag{found_it}`"),
+    "linux2": ("🐧 Linux 2 — SUID", "Find SUID binaries:\n```bash\n$ find / -perm -4000 2>/dev/null\n```\nWhich binary can escalate privs? Flag: `flag{binary_name}`"),
+    "linux3": ("🐧 Linux 3 — Cron Job", "Crontab has a vulnerable script:\n```\n* * * * * root /tmp/backup.sh\n```\nHow to exploit? Flag: `flag{exploit_method}`"),
+
+    # NETWORK
+    "net1": ("📡 Network 1 — Nmap", "Scan result shows open port 22, 80, 443, 3306.\nWhat service runs on 3306? Flag: `flag{service}`"),
+    "net2": ("📡 Network 2 — Wireshark", "Packet capture shows plaintext login.\nProtocol: Telnet. Username visible: admin.\nFlag: `flag{admin_password_from_packet}`"),
+    "net3": ("📡 Network 3 — DNS", "DNS lookup for `rebellion.hack`:\n```\nA record: 10.10.10.10\nTXT record: flag{dns_recon_master}\n```\nFlag?"),
+}
+
+CTF_ANSWERS = {
+    "crypto1": "flag{hello_from_base64}",
+    "crypto2": "flag{binary_is_fun}",
+    "crypto3": "flag{rot_thirteen_is_easy}",
+    "crypto4": "flag{hex_master}",
+    "web1": "flag{flag.txt}",
+    "web2": "flag{' OR '1'='1}",
+    "web3": "flag{xss_payload}",
+    "web4": "flag{idor_found}",
+    "brute1": "flag{1999}",
+    "brute2": "flag{password}",
+    "brute3": "flag{123456_password_12345}",
+    "brute4": "flag{forged}",
+    "osint1": "flag{root-rebellion-bot}",
+    "osint2": "flag{example.com}",
+    "osint3": "flag{new_york}",
+    "linux1": "flag{found_it}",
+    "linux2": "flag{/usr/bin/passwd}",
+    "linux3": "flag{write_to_script}",
+    "net1": "flag{mysql}",
+    "net2": "flag{admin_password_from_packet}",
+    "net3": "flag{dns_recon_master}",
+}
+
+@bot.command()
+async def challenges(ctx):
+    embed = discord.Embed(title="🎯 CTF TRAINING GROUNDS", description="> `root@rebellion:~# ./list_challenges.sh`\n\nUse `!ctf <id>` to load. Submit with `!submit <flag>`", color=0x00FF41)
+    embed.add_field(name="🔑 Cryptography", value="`crypto1` `crypto2` `crypto3` `crypto4`", inline=False)
+    embed.add_field(name="🌐 Web Exploitation", value="`web1` `web2` `web3` `web4`", inline=False)
+    embed.add_field(name="💥 Brute Force", value="`brute1` `brute2` `brute3` `brute4`", inline=False)
+    embed.add_field(name="🕵️ OSINT", value="`osint1` `osint2` `osint3`", inline=False)
+    embed.add_field(name="🐧 Linux PrivEsc", value="`linux1` `linux2` `linux3`", inline=False)
+    embed.add_field(name="📡 Network", value="`net1` `net2` `net3`", inline=False)
+    embed.set_footer(text="root@rebellion:~# hack the planet 🌐")
+    await ctx.send(embed=embed)
+
+@bot.command()
+async def ctf(ctx, challenge: str = None):
+    if not challenge:
+        await ctx.send("❌ Specify a challenge! Use `!challenges` for list.")
+        return
+    challenge = challenge.lower()
+    if challenge not in CTF_CHALLENGES:
+        await ctx.send("❌ Challenge not found! Use `!challenges` for list.")
+        return
+    title, desc = CTF_CHALLENGES[challenge]
+    embed = discord.Embed(title=f"🚩 {title}", description=desc, color=0xFF0000)
+    embed.set_footer(text=f"root@rebellion:~# Submit with !submit flag{{...}}")
+    await ctx.send(embed=embed)
+
+@bot.command()
+async def submit(ctx, *, flag: str = None):
+    if not flag:
+        await ctx.send("❌ Usage: `!submit flag{...}`")
+        return
+    for challenge, answer in CTF_ANSWERS.items():
+        if flag.strip() == answer:
+            embed = discord.Embed(
+                title="🎉 CORRECT FLAG!",
+                description=f"> `root@rebellion:~# flag --verify`\n> `✅ FLAG ACCEPTED`\n\n**{ctx.author.mention} solved `{challenge}`!**\n\n🏆 Keep grinding hacker!",
+                color=0x00FF41
+            )
+            await ctx.send(embed=embed)
+            return
+    embed = discord.Embed(
+        title="❌ WRONG FLAG",
+        description="> `root@rebellion:~# flag --verify`\n> `❌ ACCESS DENIED`\n\nTry harder. The answer is out there.",
+        color=0xFF0000
+    )
+    await ctx.send(embed=embed)
+
+
+# ── LEARN HACKING BUTTON ───────────────────────────────────
+class LearnHackingView(View):
+    def __init__(self): super().__init__(timeout=None)
+
+    @discord.ui.button(label="🌐 Start Learning", style=discord.ButtonStyle.green, custom_id="learn_btn", emoji="💻")
+    async def learn(self, interaction: discord.Interaction, button: Button):
+        await interaction.response.send_message(
+            "🔓 **Access Granted!**\nYour hacking journey starts here:\n> https://kali-learner--alimhussain1266.replit.app/",
+            ephemeral=True
+        )
+
+# ── CTF CHALLENGES EXPANDED ────────────────────────────────
+CTF_CHALLENGES = {
+    # CRYPTO
+    "crypto1": ("🔑 Crypto 1 — Base64", "Decode this:\n```ZmxhZ3toZWxsb19mcm9tX2Jhc2U2NH0=```"),
+    "crypto2": ("🔑 Crypto 2 — Binary", "Convert binary to ASCII:\n```01100110 01101100 01100001 01100111 01111011 01100010 01101001 01101110 01100001 01110010 01111001 01011111 01101001 01110011 01011111 01100110 01110101 01101110 01111101```"),
+    "crypto3": ("🔑 Crypto 3 — Caesar", "Decode Caesar cipher (ROT13):\n```synt{ebg_guergrra_vf_rnfl}```"),
+    "crypto4": ("🔑 Crypto 4 — Hex", "Convert hex to ASCII:\n```666c61677b6865785f6d61737465727d```"),
+
+    # WEB
+    "web1": ("🌐 Web 1 — Robots.txt", "We pulled this robots.txt:\n```\nUser-agent: *\nDisallow: /admin-secret-panel/\nDisallow: /flag.txt\n```\nWhat's the flag path?"),
+    "web2": ("🌐 Web 2 — SQLi", "Login form is vulnerable. What payload bypasses auth?\n```sql\nSELECT * FROM users WHERE user='INPUT' AND pass='INPUT'\n```\nFlag format: `flag{payload_here}`"),
+    "web3": ("🌐 Web 3 — XSS", "Find the XSS payload that triggers alert:\n```html\n<input value='USER_INPUT'>\n```\nFlag: `flag{xss_payload}`"),
+    "web4": ("🌐 Web 4 — IDOR", "API endpoint: `/api/user?id=1` returns admin data.\nWhat id gives flag?\n```json\n{\"id\": 1, \"role\": \"admin\", \"flag\": \"???\"}\n```"),
+
+    # BRUTE FORCE
+    "brute1": ("💥 Brute 1 — PIN Crack", "4-digit PIN. Hint: It's a year between 1990-2000.\nFlag: `flag{year}`"),
+    "brute2": ("💥 Brute 2 — MD5 Hash", "Crack this MD5:\n```5f4dcc3b5aa765d61d8327deb882cf99```\nFlag: `flag{plaintext}`"),
+    "brute3": ("💥 Brute 3 — Wordlist", "SSH login cracked with rockyou.txt. Top 3 passwords?\nFlag: `flag{password1_password2_password3}`"),
+    "brute4": ("💥 Brute 4 — JWT", "JWT token with weak secret:\n```eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoiZ3Vlc3QifQ.abc123```\nSecret is 'secret'. Forge admin token. Flag: `flag{forged}`"),
+
+    # OSINT
+    "osint1": ("🕵️ OSINT 1 — Username", "Username: `th3r34l3ll10t`\nFind their GitHub. What's the repo name?\nFlag: `flag{repo_name}`"),
+    "osint2": ("🕵️ OSINT 2 — IP Recon", "IP: `93.184.216.34`\nWhat domain does it belong to?\nFlag: `flag{domain}`"),
+    "osint3": ("🕵️ OSINT 3 — Metadata", "Image metadata reveals GPS coords.\nLat: 40.7128, Long: -74.0060\nWhat city? Flag: `flag{city}`"),
+
+    # LINUX
+    "linux1": ("🐧 Linux 1 — Find Flag", "Flag hidden in /etc. Command to find it?\n```bash\n$ find /etc -name '*.flag' 2>/dev/null\n```\nFlag: `flag{found_it}`"),
+    "linux2": ("🐧 Linux 2 — SUID", "Find SUID binaries:\n```bash\n$ find / -perm -4000 2>/dev/null\n```\nWhich binary can escalate privs? Flag: `flag{binary_name}`"),
+    "linux3": ("🐧 Linux 3 — Cron Job", "Crontab has a vulnerable script:\n```\n* * * * * root /tmp/backup.sh\n```\nHow to exploit? Flag: `flag{exploit_method}`"),
+
+    # NETWORK
+    "net1": ("📡 Network 1 — Nmap", "Scan result shows open port 22, 80, 443, 3306.\nWhat service runs on 3306? Flag: `flag{service}`"),
+    "net2": ("📡 Network 2 — Wireshark", "Packet capture shows plaintext login.\nProtocol: Telnet. Username visible: admin.\nFlag: `flag{admin_password_from_packet}`"),
+    "net3": ("📡 Network 3 — DNS", "DNS lookup for `rebellion.hack`:\n```\nA record: 10.10.10.10\nTXT record: flag{dns_recon_master}\n```\nFlag?"),
+}
+
+CTF_ANSWERS = {
+    "crypto1": "flag{hello_from_base64}",
+    "crypto2": "flag{binary_is_fun}",
+    "crypto3": "flag{rot_thirteen_is_easy}",
+    "crypto4": "flag{hex_master}",
+    "web1": "flag{flag.txt}",
+    "web2": "flag{' OR '1'='1}",
+    "web3": "flag{xss_payload}",
+    "web4": "flag{idor_found}",
+    "brute1": "flag{1999}",
+    "brute2": "flag{password}",
+    "brute3": "flag{123456_password_12345}",
+    "brute4": "flag{forged}",
+    "osint1": "flag{root-rebellion-bot}",
+    "osint2": "flag{example.com}",
+    "osint3": "flag{new_york}",
+    "linux1": "flag{found_it}",
+    "linux2": "flag{/usr/bin/passwd}",
+    "linux3": "flag{write_to_script}",
+    "net1": "flag{mysql}",
+    "net2": "flag{admin_password_from_packet}",
+    "net3": "flag{dns_recon_master}",
+}
+
+@bot.command()
+async def challenges(ctx):
+    embed = discord.Embed(title="🎯 CTF TRAINING GROUNDS", description="> `root@rebellion:~# ./list_challenges.sh`\n\nUse `!ctf <id>` to load. Submit with `!submit <flag>`", color=0x00FF41)
+    embed.add_field(name="🔑 Cryptography", value="`crypto1` `crypto2` `crypto3` `crypto4`", inline=False)
+    embed.add_field(name="🌐 Web Exploitation", value="`web1` `web2` `web3` `web4`", inline=False)
+    embed.add_field(name="💥 Brute Force", value="`brute1` `brute2` `brute3` `brute4`", inline=False)
+    embed.add_field(name="🕵️ OSINT", value="`osint1` `osint2` `osint3`", inline=False)
+    embed.add_field(name="🐧 Linux PrivEsc", value="`linux1` `linux2` `linux3`", inline=False)
+    embed.add_field(name="📡 Network", value="`net1` `net2` `net3`", inline=False)
+    embed.set_footer(text="root@rebellion:~# hack the planet 🌐")
+    await ctx.send(embed=embed)
+
+@bot.command()
+async def ctf(ctx, challenge: str = None):
+    if not challenge:
+        await ctx.send("❌ Specify a challenge! Use `!challenges` for list.")
+        return
+    challenge = challenge.lower()
+    if challenge not in CTF_CHALLENGES:
+        await ctx.send("❌ Challenge not found! Use `!challenges` for list.")
+        return
+    title, desc = CTF_CHALLENGES[challenge]
+    embed = discord.Embed(title=f"🚩 {title}", description=desc, color=0xFF0000)
+    embed.set_footer(text=f"root@rebellion:~# Submit with !submit flag{{...}}")
+    await ctx.send(embed=embed)
+
+@bot.command()
+async def submit(ctx, *, flag: str = None):
+    if not flag:
+        await ctx.send("❌ Usage: `!submit flag{...}`")
+        return
+    for challenge, answer in CTF_ANSWERS.items():
+        if flag.strip() == answer:
+            embed = discord.Embed(
+                title="🎉 CORRECT FLAG!",
+                description=f"> `root@rebellion:~# flag --verify`\n> `✅ FLAG ACCEPTED`\n\n**{ctx.author.mention} solved `{challenge}`!**\n\n🏆 Keep grinding hacker!",
+                color=0x00FF41
+            )
+            await ctx.send(embed=embed)
+            return
+    embed = discord.Embed(
+        title="❌ WRONG FLAG",
+        description="> `root@rebellion:~# flag --verify`\n> `❌ ACCESS DENIED`\n\nTry harder. The answer is out there.",
+        color=0xFF0000
+    )
+    await ctx.send(embed=embed)
+
+
+# ── LEARN HACKING BUTTON ───────────────────────────────────
+class LearnHackingView(View):
+    def __init__(self): super().__init__(timeout=None)
+
+    @discord.ui.button(label="🌐 Start Learning", style=discord.ButtonStyle.green, custom_id="learn_btn", emoji="💻")
+    async def learn(self, interaction: discord.Interaction, button: Button):
+        await interaction.response.send_message(
+            "🔓 **Access Granted!**\nYour hacking journey starts here:\n> https://kali-learner--alimhussain1266.replit.app/",
+            ephemeral=True
+        )
+
+# ── CTF CHALLENGES EXPANDED ────────────────────────────────
+CTF_CHALLENGES = {
+    # CRYPTO
+    "crypto1": ("🔑 Crypto 1 — Base64", "Decode this:\n```ZmxhZ3toZWxsb19mcm9tX2Jhc2U2NH0=```"),
+    "crypto2": ("🔑 Crypto 2 — Binary", "Convert binary to ASCII:\n```01100110 01101100 01100001 01100111 01111011 01100010 01101001 01101110 01100001 01110010 01111001 01011111 01101001 01110011 01011111 01100110 01110101 01101110 01111101```"),
+    "crypto3": ("🔑 Crypto 3 — Caesar", "Decode Caesar cipher (ROT13):\n```synt{ebg_guergrra_vf_rnfl}```"),
+    "crypto4": ("🔑 Crypto 4 — Hex", "Convert hex to ASCII:\n```666c61677b6865785f6d61737465727d```"),
+
+    # WEB
+    "web1": ("🌐 Web 1 — Robots.txt", "We pulled this robots.txt:\n```\nUser-agent: *\nDisallow: /admin-secret-panel/\nDisallow: /flag.txt\n```\nWhat's the flag path?"),
+    "web2": ("🌐 Web 2 — SQLi", "Login form is vulnerable. What payload bypasses auth?\n```sql\nSELECT * FROM users WHERE user='INPUT' AND pass='INPUT'\n```\nFlag format: `flag{payload_here}`"),
+    "web3": ("🌐 Web 3 — XSS", "Find the XSS payload that triggers alert:\n```html\n<input value='USER_INPUT'>\n```\nFlag: `flag{xss_payload}`"),
+    "web4": ("🌐 Web 4 — IDOR", "API endpoint: `/api/user?id=1` returns admin data.\nWhat id gives flag?\n```json\n{\"id\": 1, \"role\": \"admin\", \"flag\": \"???\"}\n```"),
+
+    # BRUTE FORCE
+    "brute1": ("💥 Brute 1 — PIN Crack", "4-digit PIN. Hint: It's a year between 1990-2000.\nFlag: `flag{year}`"),
+    "brute2": ("💥 Brute 2 — MD5 Hash", "Crack this MD5:\n```5f4dcc3b5aa765d61d8327deb882cf99```\nFlag: `flag{plaintext}`"),
+    "brute3": ("💥 Brute 3 — Wordlist", "SSH login cracked with rockyou.txt. Top 3 passwords?\nFlag: `flag{password1_password2_password3}`"),
+    "brute4": ("💥 Brute 4 — JWT", "JWT token with weak secret:\n```eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoiZ3Vlc3QifQ.abc123```\nSecret is 'secret'. Forge admin token. Flag: `flag{forged}`"),
+
+    # OSINT
+    "osint1": ("🕵️ OSINT 1 — Username", "Username: `th3r34l3ll10t`\nFind their GitHub. What's the repo name?\nFlag: `flag{repo_name}`"),
+    "osint2": ("🕵️ OSINT 2 — IP Recon", "IP: `93.184.216.34`\nWhat domain does it belong to?\nFlag: `flag{domain}`"),
+    "osint3": ("🕵️ OSINT 3 — Metadata", "Image metadata reveals GPS coords.\nLat: 40.7128, Long: -74.0060\nWhat city? Flag: `flag{city}`"),
+
+    # LINUX
+    "linux1": ("🐧 Linux 1 — Find Flag", "Flag hidden in /etc. Command to find it?\n```bash\n$ find /etc -name '*.flag' 2>/dev/null\n```\nFlag: `flag{found_it}`"),
+    "linux2": ("🐧 Linux 2 — SUID", "Find SUID binaries:\n```bash\n$ find / -perm -4000 2>/dev/null\n```\nWhich binary can escalate privs? Flag: `flag{binary_name}`"),
+    "linux3": ("🐧 Linux 3 — Cron Job", "Crontab has a vulnerable script:\n```\n* * * * * root /tmp/backup.sh\n```\nHow to exploit? Flag: `flag{exploit_method}`"),
+
+    # NETWORK
+    "net1": ("📡 Network 1 — Nmap", "Scan result shows open port 22, 80, 443, 3306.\nWhat service runs on 3306? Flag: `flag{service}`"),
+    "net2": ("📡 Network 2 — Wireshark", "Packet capture shows plaintext login.\nProtocol: Telnet. Username visible: admin.\nFlag: `flag{admin_password_from_packet}`"),
+    "net3": ("📡 Network 3 — DNS", "DNS lookup for `rebellion.hack`:\n```\nA record: 10.10.10.10\nTXT record: flag{dns_recon_master}\n```\nFlag?"),
+}
+
+CTF_ANSWERS = {
+    "crypto1": "flag{hello_from_base64}",
+    "crypto2": "flag{binary_is_fun}",
+    "crypto3": "flag{rot_thirteen_is_easy}",
+    "crypto4": "flag{hex_master}",
+    "web1": "flag{flag.txt}",
+    "web2": "flag{' OR '1'='1}",
+    "web3": "flag{xss_payload}",
+    "web4": "flag{idor_found}",
+    "brute1": "flag{1999}",
+    "brute2": "flag{password}",
+    "brute3": "flag{123456_password_12345}",
+    "brute4": "flag{forged}",
+    "osint1": "flag{root-rebellion-bot}",
+    "osint2": "flag{example.com}",
+    "osint3": "flag{new_york}",
+    "linux1": "flag{found_it}",
+    "linux2": "flag{/usr/bin/passwd}",
+    "linux3": "flag{write_to_script}",
+    "net1": "flag{mysql}",
+    "net2": "flag{admin_password_from_packet}",
+    "net3": "flag{dns_recon_master}",
+}
+
+@bot.command()
+async def challenges(ctx):
+    embed = discord.Embed(title="🎯 CTF TRAINING GROUNDS", description="> `root@rebellion:~# ./list_challenges.sh`\n\nUse `!ctf <id>` to load. Submit with `!submit <flag>`", color=0x00FF41)
+    embed.add_field(name="🔑 Cryptography", value="`crypto1` `crypto2` `crypto3` `crypto4`", inline=False)
+    embed.add_field(name="🌐 Web Exploitation", value="`web1` `web2` `web3` `web4`", inline=False)
+    embed.add_field(name="💥 Brute Force", value="`brute1` `brute2` `brute3` `brute4`", inline=False)
+    embed.add_field(name="🕵️ OSINT", value="`osint1` `osint2` `osint3`", inline=False)
+    embed.add_field(name="🐧 Linux PrivEsc", value="`linux1` `linux2` `linux3`", inline=False)
+    embed.add_field(name="📡 Network", value="`net1` `net2` `net3`", inline=False)
+    embed.set_footer(text="root@rebellion:~# hack the planet 🌐")
+    await ctx.send(embed=embed)
+
+@bot.command()
+async def ctf(ctx, challenge: str = None):
+    if not challenge:
+        await ctx.send("❌ Specify a challenge! Use `!challenges` for list.")
+        return
+    challenge = challenge.lower()
+    if challenge not in CTF_CHALLENGES:
+        await ctx.send("❌ Challenge not found! Use `!challenges` for list.")
+        return
+    title, desc = CTF_CHALLENGES[challenge]
+    embed = discord.Embed(title=f"🚩 {title}", description=desc, color=0xFF0000)
+    embed.set_footer(text=f"root@rebellion:~# Submit with !submit flag{{...}}")
+    await ctx.send(embed=embed)
+
+@bot.command()
+async def submit(ctx, *, flag: str = None):
+    if not flag:
+        await ctx.send("❌ Usage: `!submit flag{...}`")
+        return
+    for challenge, answer in CTF_ANSWERS.items():
+        if flag.strip() == answer:
+            embed = discord.Embed(
+                title="🎉 CORRECT FLAG!",
+                description=f"> `root@rebellion:~# flag --verify`\n> `✅ FLAG ACCEPTED`\n\n**{ctx.author.mention} solved `{challenge}`!**\n\n🏆 Keep grinding hacker!",
+                color=0x00FF41
+            )
+            await ctx.send(embed=embed)
+            return
+    embed = discord.Embed(
+        title="❌ WRONG FLAG",
+        description="> `root@rebellion:~# flag --verify`\n> `❌ ACCESS DENIED`\n\nTry harder. The answer is out there.",
+        color=0xFF0000
+    )
+    await ctx.send(embed=embed)
+
